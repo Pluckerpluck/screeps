@@ -30,15 +30,18 @@ task webpack(type: NodeTask, dependsOn: "compileTypeScript") {
 task build(dependsOn: "webpack")
 
 task deploy(type: org._10ne.gradle.rest.RestTask, dependsOn: "build") {
-  def jsonFile = file("${buildDir}/js/backend.js")
-  def contents = new groovy.json.JsonBuilder(jsonFile.getText('UTF-8')).toString()
+  doFirst {
+    def jsonFile = file("${buildDir}/js/backend.js")
+    def contents = new groovy.json.JsonBuilder(jsonFile.getText('UTF-8')).toString()
 
-  def data = [
-    branch: 'default',
-    modules: [
-      main: jsonFile.getText('UTF-8')
+    requestBody = [
+      branch: 'dev',
+      modules: [
+        main: jsonFile.getText('UTF-8')
+      ]
     ]
-  ]
+  }
+  
 
   httpMethod = 'post'
   uri = 'https://screeps.com/api/user/code'
@@ -46,7 +49,6 @@ task deploy(type: org._10ne.gradle.rest.RestTask, dependsOn: "build") {
   username = screepsUsername
   password = screepsPassword
   contentType = groovyx.net.http.ContentType.JSON
-  requestBody = data
   responseHandler = {
       //Configured content type is JSON and we let the client's handler parse the response for us
       assert it.ok == 1

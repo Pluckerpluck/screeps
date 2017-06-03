@@ -1,7 +1,7 @@
 
 export class RoleUpgrader {
 
-    static run (creep) {
+    static run (creep:Creep) {
         if(creep.memory.upgrading && creep.carry.energy == 0) {
             creep.memory.upgrading = false;
             creep.say('🔄 harvest');
@@ -17,7 +17,7 @@ export class RoleUpgrader {
             }
         }
         else {
-            var sources = creep.room.find(FIND_SOURCES);
+            var sources = creep.room.find(FIND_SOURCES) as Source[];
             if(creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(sources[0], {visualizePathStyle: {stroke: '#ffaa00'}});
             }

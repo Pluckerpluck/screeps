@@ -1,7 +1,4 @@
-import * as _ from 'lodash';
-
-import {RoleUpgrader as roleUpgrader} from "./role.upgrader"
-import {RoleHarvester as roleHarvester} from "./role.harvester"
+import {RoomController} from "./roomController"
 
 function mloop() {
 
@@ -12,32 +9,14 @@ function mloop() {
         }
     }
 
-    var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
-    console.log('Harvesters: ' + harvesters.length);
+    let roomController = new RoomController();
 
-    if(harvesters.length < 2) {
-        var newName = Game.spawns['Spawn1'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'harvester'});
-        console.log('Spawning new harvester: ' + newName);
+    for (let roomName in roomController.rooms) {
+        let room = roomController.rooms[roomName];
+        room.run();
     }
 
-    if(Game.spawns['Spawn1'].spawning) {
-        var spawningCreep = Game.creeps[Game.spawns['Spawn1'].spawning.name];
-        Game.spawns['Spawn1'].room.visual.text(
-            '🛠️' + spawningCreep.memory.role,
-            Game.spawns['Spawn1'].pos.x + 1,
-            Game.spawns['Spawn1'].pos.y,
-            {align: 'left', opacity: 0.8});
-    }
-
-    for(var name in Game.creeps) {
-        var creep = Game.creeps[name];
-        if(creep.memory.role == 'harvester') {
-            //roleHarvester.run(creep);
-        }
-        if(creep.memory.role == 'upgrader') {
-            roleUpgrader.run(creep);
-        }
-    }
+    //console.log("Used" + Game.cpu.getUsed())
 }
 
 export const loop = mloop 

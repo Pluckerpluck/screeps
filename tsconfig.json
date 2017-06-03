@@ -3,8 +3,9 @@
         "module": "commonjs",
         "target": "es6",
         "removeComments": true,
-        "noResolve": false,
-        "sourceMap": true
+        "noResolve": true,
+        "sourceMap": true,
+        "noImplicitAny": true
     },
     "compileOnSave": false,
     "include": [

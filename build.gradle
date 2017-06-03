@@ -1,0 +1,54 @@
+plugins {
+  id "com.moowork.node" version "1.1.1"
+  id "com.moowork.grunt" version "1.1.1"
+  id "de.richsource.gradle.plugins.typescript" version "1.8.0"
+  id "org.tenne.rest" version "0.4.2"
+}
+
+import com.moowork.gradle.node.NodeExtension
+import com.moowork.gradle.node.variant.VariantBuilder
+
+node {
+  download = true
+}
+
+String nodeExecutable() {
+  NodeExtension nodeExt = NodeExtension.get(project)
+  return new VariantBuilder(nodeExt).build().nodeExec
+}
+
+compileTypeScript {
+  compilerExecutable "${nodeExecutable()} node_modules/typescript/lib/tsc.js"
+  dependsOn "npmInstall"
+  projectFile file("${projectDir}")
+}
+
+task webpack(type: NodeTask, dependsOn: "compileTypeScript") {
+    script = project.file('node_modules/webpack/bin/webpack.js')
+}
+
+task build(dependsOn: "webpack")
+
+task deploy(type: org._10ne.gradle.rest.RestTask, dependsOn: "build") {
+  def jsonFile = file("${buildDir}/js/backend.js")
+  def contents = new groovy.json.JsonBuilder(jsonFile.getText('UTF-8')).toString()
+
+  def data = [
+    branch: 'default',
+    modules: [
+      main: jsonFile.getText('UTF-8')
+    ]
+  ]
+
+  httpMethod = 'post'
+  uri = 'https://screeps.com/api/user/code'
+  preemptiveAuth = true
+  username = screepsUsername
+  password = screepsPassword
+  contentType = groovyx.net.http.ContentType.JSON
+  requestBody = data
+  responseHandler = {
+      //Configured content type is JSON and we let the client's handler parse the response for us
+      assert it.ok == 1
+  }
+}

@@ -2,9 +2,8 @@ import * as _ from 'lodash';
 
 import { PlRoom } from "./room"
 
-import { RoleUpgrader } from "../../role.upgrader"
-import { RoleHarvester } from "../../role.harvester"
-import { PlCreepBuilder } from "../creep/builder"
+import { PlCreepFactory } from "../creep/factory"
+
 
 /**
  * A room that contains a spawn
@@ -18,38 +17,51 @@ export class PlHub extends PlRoom {
     }
 
     run(): void {
-        let harvesters = _.filter(this.creeps, (creep) => creep.memory.role == 'harvester');
-        let upgraders = _.filter(this.creeps, (creep) => creep.memory.role == 'upgrader');
-        let builders = _.filter(this.creeps, (creep) => creep.memory.role == 'builder');
+        let worker = _.filter(this.creeps, (creep) => creep.memory.role == 'worker');
 
         let primarySpawn = this.spawns[Object.keys(this.spawns)[0]]
 
         var sources = this.room.find(FIND_SOURCES) as Source[];
+        primarySpawn.pos.findClosestByPath(FIND_SOURCES)
 
-        if (Memory.rooms[this.room.name].sourcesPathed == undefined) {
-            for(let source of sources) {
-                let path = primarySpawn.pos.findPathTo(source.pos);
-                for(let step of path){
-                    this.room.createConstructionSite(step.x, step.y, STRUCTURE_ROAD)
+        // Another initialization
+        if (Memory.rooms[this.room.name].sources == undefined) {
+            Memory.rooms[this.room.name].sources = {}
+
+            let source = primarySpawn.pos.findClosestByPath(FIND_SOURCES) as Source;
+            Memory.rooms[this.room.name].primarySource = source.id;
+        }
+
+        if (Memory.rooms[this.room.name].queue == undefined) {
+            Memory.rooms[this.room.name].queue = [];
+        }
+
+        if (worker.length < sources.length && Memory.rooms[this.room.name].queue.length == 0) {
+            // Find clean source
+            let source: Source;
+            for (source of sources) {
+                // Source hasn't been claimed
+                if (Memory.rooms[this.room.name].sources[source.id] == undefined) {
+                    Memory.rooms[this.room.name].sources[source.id] = true
+                    break
                 }
             }
-            Memory.rooms[this.room.name].sourcesPathed = true;
+            let worker: any  = {}
+            worker["build"]= [WORK, CARRY, MOVE];
+            worker["name"] = undefined;
+            worker["memory"] = { role: 'worker', task: 'harvest', source: source.id, spawnRoom: this.room.name }
+            Memory.rooms[this.room.name].queue.push(worker);
         }
 
-        let queue: string;
-        if (harvesters.length < 1) {
-            primarySpawn.createCreep([WORK, CARRY, MOVE], undefined, { role: 'harvester', source: 0 });
-            queue = "harvester";
-        }else if (upgraders.length < 1) {
-            primarySpawn.createCreep([WORK, CARRY, MOVE], undefined, { role: 'upgrader' });
-            queue = "upgrader";
-        }else if (builders.length < 1) {
-            primarySpawn.createCreep([WORK, CARRY, MOVE], undefined, { role: 'builder' });
-            queue = "builder";
-        } else if (harvesters.length < 2 * sources.length) {
-            primarySpawn.createCreep([WORK, CARRY, MOVE], undefined, { role: 'harvester', source: 0 });
-            queue = "harvester";
+        if (Memory.rooms[this.room.name].queue.length != 0) {
+            let creepSpawn = Memory.rooms[this.room.name].queue[0];
+            if (primarySpawn.canCreateCreep(creepSpawn["build"]) == OK) {
+                primarySpawn.createCreep(creepSpawn["build"], creepSpawn["name"], creepSpawn["memory"]);
+                Memory.rooms[this.room.name].queue.pop();
+            }
         }
+
+
 
         if (primarySpawn.spawning) {
             var spawningCreep = this.creeps[primarySpawn.spawning.name];
@@ -59,23 +71,20 @@ export class PlHub extends PlRoom {
                 primarySpawn.pos.y,
                 { align: 'left', opacity: 0.8 });
         } else {
-            primarySpawn.room.visual.text(
-                '✋' + queue,
-                primarySpawn.pos.x + 1,
-                primarySpawn.pos.y,
-                { align: 'left', opacity: 0.8 });
+            if (Memory.rooms[this.room.name].queue.length != 0) {
+                primarySpawn.room.visual.text(
+                    '✋' + Memory.rooms[this.room.name].queue[0]["memory"].role,
+                    primarySpawn.pos.x + 1,
+                    primarySpawn.pos.y,
+                    { align: 'left', opacity: 0.8 });
+            }
         }
 
+        // Run all creeps
         for (var name in this.creeps) {
             var creep = this.creeps[name];
-            if (creep.memory.role == 'harvester') {
-                RoleHarvester.run(creep);
-            }
-            else if (creep.memory.role == 'upgrader') {
-                RoleUpgrader.run(creep);
-            }
-            else if (creep.memory.role == 'builder') {
-                new PlCreepBuilder(creep).run();
+            if (creep.memory.role == "worker") {
+                PlCreepFactory.wrap(creep).run();
             }
         }
     }

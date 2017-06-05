@@ -11,6 +11,14 @@ export class RoomController {
     }
 
     /**
+     * Notify the spawning room of this creeps death
+     * @param creep The creep that has died
+     */
+    notifyDeath(creep: Creep) {
+        let room = creep.memory.spawnRoom;
+    }
+
+    /**
      * Returns all the rooms visible to the player as PlRooms
      */
     private _getRooms(): { [roomName: string]: PlHub } {

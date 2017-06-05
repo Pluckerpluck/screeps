@@ -1,8 +1,8 @@
-import { PlRoom } from "./components/room"
+import { PlHub } from "./components/room/hub"
 
 export class RoomController {
 
-    rooms: { [roomName: string]: PlRoom } = {};
+    rooms: { [roomName: string]: PlHub } = {};
 
     constructor() {
         this.rooms = this._getRooms();
@@ -13,12 +13,12 @@ export class RoomController {
     /**
      * Returns all the rooms visible to the player as PlRooms
      */
-    private _getRooms(): { [roomName: string]: PlRoom } {
-        let rooms: { [key: string]: PlRoom } = {};
+    private _getRooms(): { [roomName: string]: PlHub } {
+        let rooms: { [key: string]: PlHub } = {};
 
         for (let roomName in Game.rooms) {
             let room = Game.rooms[roomName];
-            rooms[roomName] = new PlRoom(room);
+            rooms[roomName] = new PlHub(room);
         }
         return rooms;
     }

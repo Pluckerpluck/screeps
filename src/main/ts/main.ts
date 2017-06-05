@@ -9,6 +9,11 @@ function mloop() {
         }
     }
 
+    // Initialize data (is this a waste?)
+    if (Memory.rooms == undefined) {
+        Memory.rooms = {};
+    }
+
     let roomController = new RoomController();
 
     for (let roomName in roomController.rooms) {

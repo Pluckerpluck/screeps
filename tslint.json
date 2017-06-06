@@ -11,6 +11,10 @@
         ],
         "no-console": [
             false
+        ],
+        "indent": [
+            true,
+            "tabs"
         ]
     },
     "rulesDirectory": []

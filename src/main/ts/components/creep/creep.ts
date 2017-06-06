@@ -1,11 +1,11 @@
 export abstract class PlCreep {
 
-    protected creep: Creep;
+	protected creep: Creep;
 
-    constructor(creep: Creep) {
-        this.creep = creep;
-    }
+	constructor(creep: Creep) {
+		this.creep = creep;
+	}
 
-    public abstract run(): void;
+	public abstract run(): void;
 
 }

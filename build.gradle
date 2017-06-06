@@ -17,8 +17,9 @@ String nodeExecutable() {
   return new VariantBuilder(nodeExt).build().nodeExec
 }
 
-task tslint(type: Exec, dependsOn: "npmInstall") {
-    commandLine './node_modules/tslint/bin/tslint', 'src/**/*.ts'
+task tslint(type: NodeTask, dependsOn: "npmInstall") {
+  script = project.file('node_modules/tslint/lib/tslint-cli.js')
+  args = ["src/**/*.ts"]
 }
 
 // This is from the typescript plugin and provides configuration
@@ -29,7 +30,7 @@ compileTypeScript {
 }
 
 task webpack(type: NodeTask, dependsOn: "compileTypeScript") {
-    script = project.file('node_modules/webpack/bin/webpack.js')
+  script = project.file('node_modules/webpack/bin/webpack.js')
 }
 
 task build(dependsOn: "webpack")

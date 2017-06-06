@@ -17,9 +17,14 @@ String nodeExecutable() {
   return new VariantBuilder(nodeExt).build().nodeExec
 }
 
+task tslint(type: Exec, dependsOn: "npmInstall") {
+    commandLine './node_modules/tslint/bin/tslint', 'src/**/*.ts'
+}
+
+// This is from the typescript plugin and provides configuration
 compileTypeScript {
   compilerExecutable "${nodeExecutable()} node_modules/typescript/lib/tsc.js"
-  dependsOn "npmInstall"
+  dependsOn "tslint"
   projectFile file("${projectDir}")
 }
 
@@ -41,7 +46,7 @@ task deploy(type: org._10ne.gradle.rest.RestTask, dependsOn: "build") {
       ]
     ]
   }
-  
+
 
   httpMethod = 'post'
   uri = 'https://screeps.com/api/user/code'

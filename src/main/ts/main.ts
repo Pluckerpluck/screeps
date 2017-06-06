@@ -1,28 +1,38 @@
-import {RoomController} from "./roomController"
+import * as _ from "lodash";
+
+import { RoomController } from "./roomController";
+
+import profiler = require("screeps-profiler");
+
+profiler.enable();
 
 function mloop() {
+
+    if (Game.time % 50 === 0) {
+        (Game as any).profiler.profile(49);
+    }
 
     // Initialize data (is this a waste?)
     if (!Memory.rooms) {
         Memory.rooms = {};
     }
 
-    let roomController = new RoomController();
+    const roomController = new RoomController();
 
-    for(var name in Memory.creeps) {
-        if(!Game.creeps[name]) {
+    for (const name in Memory.creeps) {
+        if (!Game.creeps[name]) {
             roomController.notifyDeath(Game.creeps[name]);
             delete Memory.creeps[name];
-            console.log('Creep has died:', name);
+            console.log("Creep has died:", name);
         }
     }
 
-    for (let roomName in roomController.rooms) {
-        let room = roomController.rooms[roomName];
+    _.forOwn(roomController.rooms, (room, roomName) => {
         room.run();
-    }
+    });
 
-    //console.log("Used" + Game.cpu.getUsed())
+    // console.log("Used" + Game.cpu.getUsed())
 }
 
-export const loop = mloop 
+// export const loop = mloop
+export const loop = profiler.wrap(mloop);

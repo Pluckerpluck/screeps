@@ -1,2 +1,4 @@
 screepsUsername = yourEmail@email.com
 screepsPassword = yourPassword
+uri = https://screeps.com/api/user/code
+branch = default

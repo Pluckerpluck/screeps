@@ -20,6 +20,8 @@ String nodeExecutable() {
 task tslint(type: NodeTask, dependsOn: "npmInstall") {
   script = project.file('node_modules/tslint/lib/tslint-cli.js')
   args = ["src/**/*.ts"]
+  inputs.files(fileTree("${projectDir}/src"))
+  outputs.files file("${buildDir}/reports/tslint.out")
 }
 
 // This is from the typescript plugin and provides configuration
@@ -31,6 +33,8 @@ compileTypeScript {
 
 task webpack(type: NodeTask, dependsOn: "compileTypeScript") {
   script = project.file('node_modules/webpack/bin/webpack.js')
+  inputs.files(fileTree("${buildDir}/ts/"))
+  outputs.files file("${buildDir}/js/backend.js")
 }
 
 task build(dependsOn: "webpack")
@@ -41,19 +45,21 @@ task deploy(type: org._10ne.gradle.rest.RestTask, dependsOn: "build") {
     def contents = new groovy.json.JsonBuilder(jsonFile.getText('UTF-8')).toString()
 
     requestBody = [
-      branch: 'dev',
+      branch: project.hasProperty('branch') ? project.property('branch') : 'default',
       modules: [
         main: jsonFile.getText('UTF-8')
       ]
     ]
+    println("uri: ${uri}")
+    println("branch: ${branch}")
   }
 
 
   httpMethod = 'post'
-  uri = 'https://screeps.com/api/user/code'
+  uri = project.hasProperty('uri') ? project.property('uri') : 'https://screeps.com/api/user/code'
   preemptiveAuth = true
-  username = screepsUsername
-  password = screepsPassword
+  username = project.getProperty('screepsUsername')
+  password = project.getProperty('screepsPassword')
   contentType = groovyx.net.http.ContentType.JSON
   responseHandler = {
       //Configured content type is JSON and we let the client's handler parse the response for us

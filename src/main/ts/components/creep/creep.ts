@@ -1,6 +1,6 @@
 export abstract class PlCreep {
 
-	protected creep: Creep;
+	public creep: Creep;
 
 	constructor(creep: Creep) {
 		this.creep = creep;

@@ -1,5 +1,3 @@
-import * as _ from "lodash";
-
 import { PlHub } from "./components/room/hub";
 
 export class RoomController {
@@ -17,8 +15,10 @@ export class RoomController {
 	 * Notify the spawning room of this creeps death
 	 * @param creep The creep that has died
 	 */
-	public notifyDeath(creep: Creep) {
-		const room = creep.memory.spawnRoom;
+	public notifyDeath(memory: CreepMemory) {
+		if (Memory.rooms[memory.spawnRoom].sources) {
+			delete Memory.rooms[memory.spawnRoom].sources[memory.source];
+		}
 	}
 
 	/**

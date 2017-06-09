@@ -1,4 +1,5 @@
-import * as _ from "lodash";
+import {PlCreep} from "../creep/creeps";
+import {PlCreepFactory} from "../creep/factory";
 
 /**
  * Standard room class that contains basic functionality for rooms we can observe
@@ -8,7 +9,7 @@ export abstract class PlRoom {
 	protected room: Room;
 
 	// Populated externally for efficiency
-	protected creeps: { [creepName: string]: Creep } = {};
+	protected creeps: { [creepName: string]: PlCreep } = {};
 	protected spawns: { [spawnName: string]: Spawn } = {};
 
 	constructor(room: Room) {
@@ -31,7 +32,7 @@ export abstract class PlRoom {
 	 */
 	public add(object: Creep | Spawn) {
 		if (object instanceof Creep) {
-			this.creeps[object.name] = object;
+			this.creeps[object.name] = PlCreepFactory.wrap(object);
 		} else {
 			this.spawns[object.name] = object;
 		}
